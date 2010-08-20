@@ -1,0 +1,21 @@
+%div
+  tweetしました
+- @output.each do |message|
+  - case message[:type]
+  - when :to_reply
+    = message[:user]
+    へのリプライ
+    = message[:result]
+  - when :tweet
+    ツイート...
+    = message[:result]
+  - when :rt
+    = message[:user]
+    によるRT...
+    = message[:result]
+  - when :fav
+    = message[:user]
+    によるfav...
+    = message[:result]
+  %br
+

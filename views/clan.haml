@@ -1,0 +1,15 @@
+%h2
+  %span.small
+    クラン
+  = h @clan_name
+
+%div.block
+  このクランのメンバー
+  - $db[@clan_name].each_value do |member|
+    %div
+      %img{:src => "http://api.dan.co.jp/twicon/#{h member[:screen_name]}/normal"}
+      %a{:href => "http://twitter.com/#{h member[:screen_name]}"}
+        @#{h member[:screen_name]}
+
+%div.block
+  %a{:href => "#{base_url}/request_token"} このクランに参加する / ログインする

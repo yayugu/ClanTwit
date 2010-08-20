@@ -1,0 +1,18 @@
+%h2
+  %span.small
+    クラン
+  = h session[:clan_name]
+
+%form#tweet-form{:action => 'javascript:;'}
+  .block
+    %div
+      %input{:type => 'radio', :name => 'tweet_type', :value => 'reply'} メンバ全員にreply
+    %div
+      %input{:type => 'radio', :name => 'tweet_type',  :value => 'kakusan'} メンバ全員で拡散
+  .block
+    %div
+      %textarea.tweet{:name => 'tweet'}
+    %div.tweet-button
+      %input.tweet-button{:type => 'submit', :value => 'tweet'}
+.block
+  #after-tweet-message

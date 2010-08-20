@@ -1,0 +1,11 @@
+%p
+  ClanTwitはみんなでグループをつくってツイートを強くできるサイトです
+%p
+  こんなことができます！
+  %ul
+    %li クランの参加者全員に簡単にリプライが送れちゃう！　リプライならみんな見逃さないし連絡も簡単！
+    %li クランのみんなで協力してツイートをRT！　たくさんの人に伝えたい大事なツイートを広められます！
+%form{:action => '/make_clan', :method => 'GET'}
+  クラン名:
+  %input.text{:type => 'text', :name => 'clan_name'}
+  %input.button{:type => 'submit', :value => 'クランをつくる'}
