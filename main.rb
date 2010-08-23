@@ -37,7 +37,7 @@ configure do
   #use Rack::Session::Cookie, :secret => SecureRandom.hex(32)
   KEY = "LSqBgPWzKdoRhgqyy8FSwA"
   SECRET = "B8IVWN4iLuIhiYvJNNFY5gHlH5BNHohIlfAI9R9zw"
-  $db = YAML::Store.new('data.yaml')
+  $db = YAML::Store.new('./tmp/data.yaml_ooo')
   enable :sessions
   set :public, File.dirname(__FILE__) + '/public'
   set :views, File.dirname(__FILE__) + '/views'
