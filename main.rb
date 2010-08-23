@@ -1,5 +1,5 @@
 require 'erb'
-require 'securerandom'
+#require 'securerandom'
 require 'yaml/store'
 require 'rubygems'
 require 'json'
@@ -51,18 +51,22 @@ before do
   end
 end
 
+
 get '/stylesheet.css' do
   content_type 'text/css', :charset => 'utf-8'
   sass :stylesheet
 end
 
+
 get '/' do
   haml :index
 end
 
+
 get '/make_clan' do
   redirect '/clan/' + params[:clan_name]
 end
+
 
 get '/clan/:clan_name' do |clan_name|
   @clan_name = clan_name
@@ -82,12 +86,12 @@ get '/request_token' do
   redirect request_token.authorize_url
 end
 
+
 get '/access_token' do
   request_token = OAuth::RequestToken.new(
     oauth_consumer, session[:request_token], session[:request_token_secret])
   begin
-    @access_token = request_token.get_access_token(
-      {},
+    @access_token = request_token.get_access_token({},
       :oauth_token => params[:oauth_token],
       :oauth_verifier => params[:oauth_verifier])
   rescue OAuth::Unauthorized => @exception
@@ -96,22 +100,33 @@ get '/access_token' do
   session[:access_token] = @access_token.token
   session[:access_token_secret] = @access_token.secret
   @screen_name = get_screen_name(@access_token)
+  session[:screen_name] = @screen_name
   $db.transaction do
-    $db[session[:clan_name]][@screen_name] = {
-      :token => @access_token.token,
-      :secret => @access_token.secret,
-      :screen_name => @screen_name}
+    unless $db[session[:clan_name]][@screen_name]
+      $db[session[:clan_name]][@screen_name] = {
+        :token => @access_token.token,
+        :secret => @access_token.secret,
+        :screen_name => @screen_name,
+        :owner => ($db[session[:clan_name]].size == 0 ? true : false)
+      }
+    end
   end
   haml %(
 ログイン / クランへの参加に成功しました！
-%a{:href => "/tweet"}
-  ツイートする
-  )
+%div
+  %a{:href => '/tweet'}
+    ツイートする
+%div
+  %a{:href => '/setting'}
+    設定
+)
 end
+
 
 get '/tweet' do
   haml :tweet
 end
+
 
 post '/do_tweet' do
   def result_message(response)
@@ -129,29 +144,45 @@ post '/do_tweet' do
       $db[session[:clan_name]].each_value do |user|
         token = get_access_token(user[:token], user[:secret])
         response = token.post('http://api.twitter.com/1/statuses/update.json',
-                               'status' => "@#{user[:screen_name]} #{params[:tweet]}")
-        @output.push({:type => :to_reply, 
-          :user => user[:screen_name], :result => result_message(response)})
+                              'status' => "@#{user[:screen_name]} #{params[:tweet]}")
+        @output.push({:type => :to_reply, :user => user[:screen_name], :result => result_message(response)})
       end
     end
   else
-    response = @access_token.post('http://api.twitter.com/1/statuses/update.json',
-                                'status' => params[:tweet])
+    response = @access_token.post('http://api.twitter.com/1/statuses/update.json', 
+                                  'status' => params[:tweet])
     @output.push({:type => :tweet, :result => result_message(response)})
     status_id = JSON.parse(response.body)['id']
     $db.transaction do
       $db[session[:clan_name]].each_value do |user|
         token = get_access_token(user[:token], user[:secret])
         response = token.post("http://api.twitter.com/1/statuses/retweet/#{status_id}.json")
-        @output.push({:type => :rt, 
-          :user => user[:screen_name], :result => result_message(response)})
+        @output.push({:type => :rt, :user => user[:screen_name], :result => result_message(response)})
 
         response = token.post("http://api.twitter.com/1/favorites/create/#{status_id}.json")
-        @output.push({:type => :fav, 
-          :user => user[:screen_name], :result => result_message(response)})
+        @output.push({:type => :fav, :user => user[:screen_name], :result => result_message(response)})
       end
     end
   end
 
   haml :do_tweet, :layout => false 
+end
+
+
+get '/setting' do
+  $db.transaction do
+    haml :setting
+  end
+end
+
+get '/delete_member/:name' do |name|
+  $db.transaction do
+    if session[:screen_name] == name or $db[session[:clan_name]][session[:screen_name]][:owner]
+      $db[session[:clan_name]].delete name
+    end
+  end
+  if session[:screen_name] == name
+    session.clear
+  end
+  erb "外しました"
 end
