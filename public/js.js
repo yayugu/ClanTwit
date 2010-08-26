@@ -13,4 +13,6 @@ $(function(){
       'html'
     );
   });
+
+  $('#tweet').charCount();
 });

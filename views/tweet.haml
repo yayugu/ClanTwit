@@ -10,8 +10,8 @@
     %div
       %input{:type => 'radio', :name => 'tweet_type',  :value => 'kakusan'} メンバ全員で拡散
   .block
-    %div
-      %textarea.tweet{:name => 'tweet'}
+    %div.tweet
+      %textarea#tweet{:name => 'tweet'}
     %div.tweet-button
       %input.tweet-button{:type => 'submit', :value => 'tweet'}
 .block
