@@ -9,7 +9,8 @@
       
   %body
     %div.title
-      %img{:src => "#{base_url}/logo.png", :alt => 'ClanTwit'}
+      %a{:href => "#{base_url}"}
+        %img{:src => "#{base_url}/logo.png", :alt => 'ClanTwit'}
     %div.main
       = yield
     %div.foot

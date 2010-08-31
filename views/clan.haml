@@ -8,10 +8,11 @@
   - $db[@clan_name].each_value do |member|
     %div
       %img{:src => "http://api.dan.co.jp/twicon/#{h member[:screen_name]}/normal"}
-      %a{:href => "http://twitter.com/#{h member[:screen_name]}"}
+      %a.member-menu{:href => "http://twitter.com/#{h member[:screen_name]}"}
         @#{h member[:screen_name]}
-      - if member[:owner]
-        オーナー！
+      - if member[:permission] == :owner
+        %span.member-menu
+          オーナー！
 
 %div.block
   %a{:href => "#{base_url}/request_token"} このクランに参加する / ログインする

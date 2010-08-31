@@ -37,7 +37,7 @@ configure do
   #use Rack::Session::Cookie, :secret => SecureRandom.hex(32)
   KEY = "LSqBgPWzKdoRhgqyy8FSwA"
   SECRET = "B8IVWN4iLuIhiYvJNNFY5gHlH5BNHohIlfAI9R9zw"
-  $db = YAML::Store.new('./tmp/data.yaml_ooo')
+  $db = YAML::Store.new('./data.yaml')
   enable :sessions
   set :public, File.dirname(__FILE__) + '/public'
   set :views, File.dirname(__FILE__) + '/views'
@@ -103,11 +103,12 @@ get '/access_token' do
   session[:screen_name] = @screen_name
   $db.transaction do
     unless $db[session[:clan_name]][@screen_name]
+      p $db[session[:clan_name]].size
       $db[session[:clan_name]][@screen_name] = {
         :token => @access_token.token,
         :secret => @access_token.secret,
         :screen_name => @screen_name,
-        :owner => ($db[session[:clan_name]].size == 0 ? true : false)
+        :permission => ($db[session[:clan_name]].size == 0 ? :owner : :user)
       }
     end
   end
@@ -115,7 +116,7 @@ get '/access_token' do
 ログイン / クランへの参加に成功しました！
 %div
   %a{:href => '/tweet'}
-    ツイートする
+    ツイートする(オーナーの許可が必要です！)
 %div
   %a{:href => '/setting'}
     設定
@@ -135,6 +136,12 @@ post '/do_tweet' do
       "成功"
     else
       "失敗:" + response.code.to_s
+    end
+  end
+
+  $db.transaction(true) do
+    if $db[session[:clan_name]][session[:screen_name]][:permission] == :user
+      halt erb "tweetできる権限がありません。クランのオーナーにtweetする許可を得てください"
     end
   end
 
@@ -175,9 +182,10 @@ get '/setting' do
   end
 end
 
+
 get '/delete_member/:name' do |name|
   $db.transaction do
-    if session[:screen_name] == name or $db[session[:clan_name]][session[:screen_name]][:owner]
+    if session[:screen_name] == name or $db[session[:clan_name]][session[:screen_name]][:permission] == :owner
       $db[session[:clan_name]].delete name
     end
   end
@@ -186,3 +194,14 @@ get '/delete_member/:name' do |name|
   end
   erb "外しました"
 end
+
+
+get '/tweetable_member/:name' do |name|
+  $db.transaction do
+    if $db[session[:clan_name]][session[:screen_name]][:permission] == :owner
+      $db[session[:clan_name]][name][:permission] = :tweetable
+    end
+  end
+  erb "#{name}がtweetできるようになりました"
+end
+

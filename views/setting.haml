@@ -7,19 +7,21 @@
   このクランへの参加をやめる
 
 .block
-  - p $db[session[:clan_name]]
-  - p $db[session[:clan_name]][session[:screen_name]]
-  - p $db[session[:clan_name]][session[:screen_name]][:owner]
-  - if $db[session[:clan_name]][session[:screen_name]][:owner]
+  - if $db[session[:clan_name]][session[:screen_name]][:permission] == :owner
     メンバーの管理
     - $db[session[:clan_name]].each_value do |member|
       %div
         %img{:src => "http://api.dan.co.jp/twicon/#{h member[:screen_name]}/normal"}
-        %a{:href => "http://twitter.com/#{h member[:screen_name]}"}
+        %a.member-menu{:href => "http://twitter.com/#{h member[:screen_name]}"}
           @#{h member[:screen_name]}
-        - if member[:owner]
-          オーナー！
-        %a{:href => "/delete_member/#{member[:screen_name]}"}
-          このメンバーをクランから外す
+        - if member[:permission] == :owner
+          %span.member-menu
+            オーナー！ 
+        - else
+          %a.member-menu{:href => "/delete_member/#{member[:screen_name]}"}
+            クランから外す 
+          - if member[:permission] == :user
+            %a.member-menu{:href => "/tweetable_member/#{member[:screen_name]}"}
+              クランでツイートできるようにする
 
   
